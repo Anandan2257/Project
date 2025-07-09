@@ -325,11 +325,13 @@
 
         // --- Authentication Handlers ---
         async function checkAuthStatus() {
+            console.log("checkAuthStatus called."); // Debugging log
             if (authToken && currentUserId) {
-                // For the user app, we don't need to check role here, just if authenticated
                 showMessage(`Welcome back! You are logged in.`, false);
+                console.log("User is authenticated, showing data entry section."); // Debugging log
                 showView('dataEntry');
             } else {
+                console.log("User is not authenticated, showing auth section."); // Debugging log
                 showView('auth');
             }
         }
@@ -344,6 +346,8 @@
                 return;
             }
 
+            console.log("Attempting login for user:", email); // Debugging log
+
             try {
                 const response = await fetch(`${API_BASE_URL}/login`, { // Calls the /login endpoint
                     method: 'POST',
@@ -352,14 +356,19 @@
                 });
 
                 const data = await response.json(); 
+                console.log("Backend response for user login:", data); // Debugging log
+
                 if (response.ok) {
                     // Store token and user ID
                     authToken = data.token;
                     currentUserId = data.userId;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUserId', currentUserId);
                     // Crucially, clear any old admin role from localStorage if it exists
                     localStorage.removeItem('currentUserRole'); 
 
                     showMessage('Login successful!', false);
+                    console.log("User login successful, showing data entry section."); // Debugging log
                     showView('dataEntry'); // Show data entry form
                 } else {
                     // If the backend explicitly denies admin login here, display that message
@@ -368,22 +377,27 @@
                     } else {
                         showMessage(`Login failed: ${data.message || 'Invalid credentials'}`, true);
                     }
+                    console.log("User login failed:", data.message); // Debugging log
                 }
             } catch (error) {
-                console.error("Login error:", error);
+                console.error("Login error:", error); // Debugging log
                 showMessage(`Login failed: ${error.message}`, true); // Display network/fetch error
             }
         });
 
         // Event listener for the Sign Up button (for regular users)
         signupBtn.addEventListener('click', async () => {
+            console.log("Sign Up button clicked."); // Debugging log
             const email = signupEmailInput.value;
             const password = signupPasswordInput.value;
 
             if (!email || !password) {
                 showMessage('Please enter both email and password.', true);
+                console.log("Sign Up: Email or password missing."); // Debugging log
                 return;
             }
+
+            console.log("Attempting signup for user:", email); // Debugging log
 
             try {
                 const response = await fetch(`${API_BASE_URL}/signup`, { // Calls the /signup endpoint
@@ -393,6 +407,8 @@
                 });
 
                 const data = await response.json(); 
+                console.log("Backend response for signup:", data); // Debugging log
+
                 if (response.ok) {
                     authToken = data.token;
                     currentUserId = data.userId;
@@ -401,18 +417,21 @@
                     localStorage.removeItem('currentUserRole'); // Ensure no admin role is left from previous session
 
                     showMessage('Sign up successful! You are now logged in.', false);
+                    console.log("Sign Up successful, showing data entry section."); // Debugging log
                     showView('dataEntry'); // Show data entry form
                 } else {
                     showMessage(`Sign up failed: ${data.message || 'Email already in use or weak password'}`, true);
+                    console.log("Sign Up failed:", data.message); // Debugging log
                 }
             } catch (error) {
-                console.error("Sign up error:", error);
+                console.error("Sign up error:", error); // Debugging log
                 showMessage(`Sign up failed: ${error.message}`, true); // Display network/fetch error
             }
         });
 
         // Function to perform logout (clears local storage and shows auth view)
         function performLogout() {
+            console.log("Performing logout..."); // Debugging log
             authToken = null;
             currentUserId = null;
             localStorage.removeItem('authToken');
@@ -420,6 +439,7 @@
             localStorage.removeItem('currentUserRole'); // Ensure all role info is cleared
             showMessage('Logged out successfully.', false);
             showView('auth'); // Redirect to authentication view
+            console.log("Logout complete."); // Debugging log
         }
 
         // Event listener for the Logout button
@@ -447,6 +467,8 @@
                 userId: currentUserId // Include userId for backend to associate data
             };
 
+            console.log("Submitting user data:", formData); // Debugging log
+
             try {
                 const response = await fetch(`${API_BASE_URL}/survey-responses`, {
                     method: 'POST',
@@ -458,6 +480,8 @@
                 });
 
                 const result = await response.json();
+                console.log("Backend response for data submission:", result); // Debugging log
+
                 if (response.ok) {
                     showMessage('Data submitted successfully!', false);
                     dataForm.reset(); // Clear the form
@@ -465,7 +489,7 @@
                     showMessage(`Error submitting data: ${result.message || response.statusText}`, true);
                 }
             } catch (error) {
-                console.error("Error submitting data:", error);
+                console.error("Error submitting data:", error); // Debugging log
                 showMessage(`Error submitting data: ${error.message}`, true);
             }
         });
