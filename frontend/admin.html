@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* General body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* Main container styling */
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px; /* Wider for admin table */
+            box-sizing: border-box;
+        }
+        /* Form input field styling */
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        /* Primary button styling */
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        /* Secondary button styling */
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+            transform: translateY(-1px);
+        }
+        /* Message box for notifications */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50; /* Green for success */
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .message-box.show {
+            opacity: 1; /* Show when 'show' class is added */
+        }
+        .message-box.error {
+            background-color: #f44336; /* Red for errors */
+        }
+        /* Close button for message box */
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        /* Utility class to hide elements */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Message Box for displaying success/error messages -->
+        <div id="messageBox" class="message-box">
+            <span id="messageText"></span>
+            <button class="close-btn" onclick="hideMessage()">×</button>
+        </div>
+
+        <!-- Admin Login Section -->
+        <div id="adminAuthSection">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Admin Panel Login</h2>
+
+            <div id="adminLoginForm" class="space-y-6">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Admin Login</h3>
+                <div>
+                    <label for="adminLoginEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="adminLoginEmail" class="form-input" placeholder="admin@example.com">
+                </div>
+                <div>
+                    <label for="adminLoginPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="adminLoginPassword" class="form-input" placeholder="********">
+                </div>
+                <button id="adminLoginBtn" class="btn-primary w-full">Login as Admin</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Are you a regular User? <a href="index.html" class="text-blue-600 hover:underline">Go to User App</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Admin Panel Section (initially hidden) -->
+        <div id="adminPanelSection" class="hidden">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Admin Dashboard</h2>
+            <p class="text-center text-gray-600 mb-6">View and download all user data.</p>
+
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-700">Collected Data</h3>
+                <button id="downloadDataBtn" class="btn-primary">Download All Data (CSV)</button>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th class="py-3 px-4 border-b border-gray-200">User Email</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Full Name</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Age</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Gender</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Education</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Occupation</th>
+                            <th class="py-3 px-4 border-b border-gray-200">AI Interest</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Hobbies</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Feedback</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="divide-y divide-gray-200">
+                        <!-- Data rows will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button id="adminLogoutBtn" class="btn-secondary w-full mt-6">Logout Admin</button>
+        </div>
+    </div>
+
+    <script>
+        // Base URL for your backend API deployed on Vercel
+        const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; 
+
+        // Get references to message box elements
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+
+        // Function to display messages (success or error)
+        function showMessage(message, isError = false) {
+            messageText.textContent = message;
+            messageBox.classList.remove('error'); 
+            if (isError) {
+                messageBox.classList.add('error'); 
+            }
+            messageBox.classList.add('show'); 
+            setTimeout(() => {
+                hideMessage();
+            }, 5000);
+        }
+
+        // Function to hide the message box
+        function hideMessage() {
+            messageBox.classList.remove('show');
+        }
+
+        // Get references to main section DOM elements
+        const adminAuthSection = document.getElementById('adminAuthSection');
+        const adminPanelSection = document.getElementById('adminPanelSection'); 
+
+        // Get references to authentication buttons and inputs
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn'); 
+
+        const adminLoginEmailInput = document.getElementById('adminLoginEmail');
+        const adminLoginPasswordInput = document.getElementById('adminLoginPassword');
+
+        // Get references to admin table elements
+        const dataTableBody = document.getElementById('dataTableBody'); 
+
+        // Global state variables for authentication
+        let adminAuthToken = localStorage.getItem('adminAuthToken') || null;       
+        let adminUserId = localStorage.getItem('adminUserId') || null; 
+        let adminUserRole = localStorage.getItem('adminUserRole') || null; 
+
+        // --- View Management Functions ---
+        function showView(viewId) {
+            adminAuthSection.classList.add('hidden');
+            adminPanelSection.classList.add('hidden');
+
+            if (viewId === 'adminAuth') {
+                adminAuthSection.classList.remove('hidden');
+            } else if (viewId === 'adminPanel') {
+                adminPanelSection.classList.remove('hidden');
+                loadAdminData(); // Load data when admin panel is shown
+            }
+        }
+
+        // --- Authentication Handlers ---
+        async function checkAuthStatus() {
+            if (adminAuthToken && adminUserId && adminUserRole === 'admin') {
+                showMessage(`Welcome back, Admin!`, false);
+                showView('adminPanel');
+            } else {
+                showView('adminAuth');
+            }
+        }
+
+        // Event listener for the Admin Login button
+        adminLoginBtn.addEventListener('click', async () => {
+            const email = adminLoginEmailInput.value;
+            const password = adminLoginPasswordInput.value;
+
+            if (!email || !password) {
+                showMessage('Please enter both email and password.', true);
+                return;
+            }
+
+            try {
+                // Calls the NEW /admin-login endpoint
+                const response = await fetch(`${API_BASE_URL}/admin-login`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json(); 
+                if (response.ok) {
+                    if (data.role === 'admin') { // Double-check role from backend
+                        adminAuthToken = data.token;
+                        adminUserId = data.userId;
+                        adminUserRole = data.role; 
+                        localStorage.setItem('adminAuthToken', adminAuthToken);
+                        localStorage.setItem('adminUserId', adminUserId);
+                        localStorage.setItem('adminUserRole', adminUserRole);
+
+                        showMessage('Admin login successful!', false);
+                        showView('adminPanel'); 
+                    } else {
+                        // This case should ideally not happen if backend /admin-login is strict,
+                        // but good for robustness.
+                        showMessage('Login failed: Not an administrator account.', true);
+                    }
+                } else {
+                    showMessage(`Login failed: ${data.message || 'Invalid credentials'}`, true);
+                }
+            } catch (error) {
+                console.error("Admin login error:", error);
+                showMessage(`Admin login failed: ${error.message}`, true); 
+            }
+        });
+
+        // Function to perform admin logout
+        function performAdminLogout() {
+            adminAuthToken = null;
+            adminUserId = null;
+            adminUserRole = null;
+            localStorage.removeItem('adminAuthToken');
+            localStorage.removeItem('adminUserId');
+            localStorage.removeItem('adminUserRole');
+            showMessage('Admin logged out successfully.', false);
+            showView('adminAuth'); // Redirect to admin login view
+        }
+
+        // Event listener for the Admin Logout button
+        adminLogoutBtn.addEventListener('click', performAdminLogout); 
+
+        // --- Admin Panel Functions (interacting with backend) ---
+        async function loadAdminData() {
+            dataTableBody.innerHTML = ''; // Clear existing table rows
+
+            if (!adminAuthToken || adminUserRole !== 'admin') {
+                showMessage('Admin not authenticated or not an admin. Please log in.', true);
+                performAdminLogout(); 
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/survey-responses`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${adminAuthToken}` // Send admin token for authorization
+                    }
+                });
+
+                const data = await response.json(); 
+
+                if (!response.ok) {
+                    showMessage(`Error loading data: ${data.message || response.statusText}`, true);
+                    if (response.status === 401 || response.status === 403) {
+                        performAdminLogout();
+                    }
+                    return;
+                }
+
+                if (data.length === 0) {
+                    const row = dataTableBody.insertRow();
+                    const cell = row.insertCell(0);
+                    cell.colSpan = 10;
+                    cell.className = 'py-3 px-4 text-center text-gray-500';
+                    cell.textContent = 'No data available.';
+                    return;
+                }
+
+                data.forEach((item) => {
+                    const row = dataTableBody.insertRow();
+                    row.className = 'hover:bg-gray-50';
+
+                    row.insertCell(0).textContent = item.userId ? item.userId.email : 'N/A';
+                    row.insertCell(1).textContent = item.fullName || '';
+                    row.insertCell(2).textContent = item.age || '';
+                    row.insertCell(3).textContent = item.gender || '';
+                    row.insertCell(4).textContent = item.education || '';
+                    row.insertCell(5).textContent = item.occupation || '';
+                    row.insertCell(6).textContent = item.aiInterest || '';
+                    row.insertCell(7).textContent = Array.isArray(item.hobbies) ? item.hobbies.join(', ') : (item.hobbies || '');
+                    row.insertCell(8).textContent = item.feedback || '';
+                    row.insertCell(9).textContent = item.timestamp ? new Date(item.timestamp).toLocaleString() : '';
+
+                    Array.from(row.cells).forEach(cell => {
+                        cell.className = 'py-3 px-4 border-b border-gray-200 text-sm text-gray-800';
+                    });
+                });
+            } catch (error) {
+                console.error("Error loading admin data:", error);
+                showMessage(`Error loading data: ${error.message}`, true); 
+            }
+        }
+
+        // Event listener for the Download Data button (admin panel)
+        const downloadDataBtn = document.getElementById('downloadDataBtn');
+        downloadDataBtn.addEventListener('click', async () => {
+            if (!adminAuthToken || adminUserRole !== 'admin') {
+                showMessage('Admin not authenticated or not an admin. Cannot download data.', true);
+                performAdminLogout();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/survey-responses`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${adminAuthToken}`
+                    }
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showMessage(`Error fetching data for download: ${data.message || response.statusText}`, true);
+                    return;
+                }
+
+                if (data.length === 0) {
+                    showMessage('No data to download.', true);
+                    return;
+                }
+
+                // Prepare CSV content with headers
+                const headers = [
+                    "User Email", "Full Name", "Age", "Gender", "Education", "Occupation",
+                    "AI Interest", "Hobbies", "Feedback", "Timestamp"
+                ];
+                let csvContent = headers.join(',') + '\n';
+
+                // Add data rows, handling commas and quotes in string fields
+                data.forEach(row => {
+                    const values = [
+                        (row.userId ? row.userId.email : 'N/A') || '',
+                        `"${(row.fullName || '').replace(/"/g, '""')}"`, 
+                        row.age || '',
+                        row.gender || '',
+                        `"${(row.education || '').replace(/"/g, '""')}"`,
+                        `"${(row.occupation || '').replace(/"/g, '""')}"`,
+                        row.aiInterest || '',
+                        `"${(Array.isArray(row.hobbies) ? row.hobbies.join('; ') : (row.hobbies || '')).replace(/"/g, '""')}"`,
+                        `"${(row.feedback || '').replace(/"/g, '""')}"`,
+                        row.timestamp ? new Date(row.timestamp).toLocaleString() : ''
+                    ];
+                    csvContent += values.join(',') + '\n';
+                });
+
+                // Create a Blob from the CSV content and trigger download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                if (link.download !== undefined) { 
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `all_user_data_${new Date().toISOString().slice(0,10)}.csv`);
+                    link.style.visibility = 'hidden'; 
+                    document.body.appendChild(link);
+                    link.click(); 
+                    document.body.removeChild(link); 
+                    showMessage('Data downloaded successfully!', false);
+                } else {
+                    showMessage('Your browser does not support downloading files directly.', true);
+                }
+
+            } catch (error) {
+                console.error("Error downloading data:", error);
+                showMessage(`Error downloading data: ${error.message}`, true); 
+            }
+        });
+
+        // Initialize the admin app on window load
+        window.onload = checkAuthStatus;
+    </script>
+</body>
+</html>

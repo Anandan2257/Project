@@ -7,10 +7,110 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
+    <style>
+        /* General body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* Main container styling */
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px; /* Adjusted max-width for user form */
+            box-sizing: border-box;
+        }
+        /* Form input field styling */
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        /* Primary button styling */
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        /* Secondary button styling */
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+            transform: translateY(-1px);
+        }
+        /* Message box for notifications */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50; /* Green for success */
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .message-box.show {
+            opacity: 1; /* Show when 'show' class is added */
+        }
+        .message-box.error {
+            background-color: #f44336; /* Red for errors */
+        }
+        /* Close button for message box */
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        /* Utility class to hide elements */
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-   <div class="container">
+    <div class="container">
         <!-- Message Box for displaying success/error messages -->
         <div id="messageBox" class="message-box">
             <span id="messageText"></span>
@@ -19,11 +119,11 @@
 
         <!-- Authentication Section: Contains Login and Sign Up forms -->
         <div id="authSection">
-            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Welcome</h2>
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Welcome to User App</h2>
 
             <!-- Login Form -->
             <div id="loginForm" class="space-y-6">
-                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Login</h3>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">User Login</h3>
                 <div>
                     <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input type="email" id="loginEmail" class="form-input" placeholder="your@example.com">
@@ -36,11 +136,14 @@
                 <p class="text-center text-sm text-gray-600 mt-4">
                     Don't have an account? <a href="#" id="showSignup" class="text-blue-600 hover:underline">Sign up</a>
                 </p>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Are you an Admin? <a href="admin.html" class="text-blue-600 hover:underline">Go to Admin Panel</a>
+                </p>
             </div>
 
             <!-- Sign Up Form (initially hidden) -->
             <div id="signupForm" class="space-y-6 hidden">
-                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Sign Up</h3>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">User Sign Up</h3>
                 <div>
                     <label for="signupEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input type="email" id="signupEmail" class="form-input" placeholder="your@example.com">
@@ -142,43 +245,233 @@
             </form>
             <button id="logoutBtn" class="btn-secondary w-full mt-4">Logout</button>
         </div>
-
-        <!-- Admin Panel Section (for admin users, initially hidden) -->
-        <div id="adminPanelSection" class="hidden">
-            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Admin Panel</h2>
-            <p class="text-center text-gray-600 mb-6">View and download all user data.</p>
-
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-semibold text-gray-700">Collected Data</h3>
-                <button id="downloadDataBtn" class="btn-primary">Download All Data (CSV)</button>
-            </div>
-
-            <div class="overflow-x-auto rounded-lg shadow-md">
-                <table class="min-w-full bg-white">
-                    <thead>
-                        <tr class="bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            <th class="py-3 px-4 border-b border-gray-200">User Email</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Full Name</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Age</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Gender</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Education</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Occupation</th>
-                            <th class="py-3 px-4 border-b border-gray-200">AI Interest</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Hobbies</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Feedback</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody" class="divide-y divide-gray-200">
-                        <!-- Data rows will be inserted here by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-
-            <button id="adminLogoutBtn" class="btn-secondary w-full mt-6">Logout Admin</button>
-        </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Base URL for your backend API deployed on Vercel
+        const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; 
+
+        // Get references to message box elements
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+
+        // Function to display messages (success or error)
+        function showMessage(message, isError = false) {
+            messageText.textContent = message;
+            messageBox.classList.remove('error'); 
+            if (isError) {
+                messageBox.classList.add('error'); 
+            }
+            messageBox.classList.add('show'); 
+            setTimeout(() => {
+                hideMessage();
+            }, 5000);
+        }
+
+        // Function to hide the message box
+        function hideMessage() {
+            messageBox.classList.remove('show');
+        }
+
+        // Get references to main section DOM elements
+        const authSection = document.getElementById('authSection');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const dataEntrySection = document.getElementById('dataEntrySection');
+
+        // Get references to authentication buttons and inputs
+        const showSignupBtn = document.getElementById('showSignup');
+        const showLoginBtn = document.getElementById('showLogin');
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const logoutBtn = document.getElementById('logoutBtn'); 
+
+        const loginEmailInput = document.getElementById('loginEmail');
+        const loginPasswordInput = document.getElementById('loginPassword');
+        const signupEmailInput = document.getElementById('signupEmail');
+        const signupPasswordInput = document.getElementById('signupPassword');
+
+        // Get references to data form elements
+        const dataForm = document.getElementById('dataForm');
+
+        // Global state variables for authentication
+        let authToken = localStorage.getItem('authToken') || null;       
+        let currentUserId = localStorage.getItem('currentUserId') || null; 
+
+        // --- View Management Functions ---
+        function showView(viewId) {
+            authSection.classList.add('hidden');
+            dataEntrySection.classList.add('hidden');
+
+            if (viewId === 'auth') {
+                authSection.classList.remove('hidden');
+                loginForm.classList.remove('hidden'); 
+                signupForm.classList.add('hidden');
+            } else if (viewId === 'dataEntry') {
+                dataEntrySection.classList.remove('hidden');
+            }
+        }
+
+        // Function to toggle between login and signup forms within the auth section
+        function toggleAuthForm(show) {
+            if (show === 'signup') {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+            } else { // show === 'login'
+                signupForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            }
+        }
+
+        // --- Authentication Handlers ---
+        async function checkAuthStatus() {
+            if (authToken && currentUserId) {
+                // For the user app, we don't need to check role here, just if authenticated
+                showMessage(`Welcome back! You are logged in.`, false);
+                showView('dataEntry');
+            } else {
+                showView('auth');
+            }
+        }
+
+        // Event listener for the Login button (for regular users)
+        loginBtn.addEventListener('click', async () => {
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+
+            if (!email || !password) {
+                showMessage('Please enter both email and password.', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, { // Calls the /login endpoint
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json(); 
+                if (response.ok) {
+                    // Store token and user ID
+                    authToken = data.token;
+                    currentUserId = data.userId;
+                    // Crucially, clear any old admin role from localStorage if it exists
+                    localStorage.removeItem('currentUserRole'); 
+
+                    showMessage('Login successful!', false);
+                    showView('dataEntry'); // Show data entry form
+                } else {
+                    // If the backend explicitly denies admin login here, display that message
+                    if (data.message === 'Admin accounts must use the separate Admin Panel.') {
+                         showMessage(data.message, true);
+                    } else {
+                        showMessage(`Login failed: ${data.message || 'Invalid credentials'}`, true);
+                    }
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                showMessage(`Login failed: ${error.message}`, true); // Display network/fetch error
+            }
+        });
+
+        // Event listener for the Sign Up button (for regular users)
+        signupBtn.addEventListener('click', async () => {
+            const email = signupEmailInput.value;
+            const password = signupPasswordInput.value;
+
+            if (!email || !password) {
+                showMessage('Please enter both email and password.', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/signup`, { // Calls the /signup endpoint
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json(); 
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUserId = data.userId;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUserId', currentUserId);
+                    localStorage.removeItem('currentUserRole'); // Ensure no admin role is left from previous session
+
+                    showMessage('Sign up successful! You are now logged in.', false);
+                    showView('dataEntry'); // Show data entry form
+                } else {
+                    showMessage(`Sign up failed: ${data.message || 'Email already in use or weak password'}`, true);
+                }
+            } catch (error) {
+                console.error("Sign up error:", error);
+                showMessage(`Sign up failed: ${error.message}`, true); // Display network/fetch error
+            }
+        });
+
+        // Function to perform logout (clears local storage and shows auth view)
+        function performLogout() {
+            authToken = null;
+            currentUserId = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUserId');
+            localStorage.removeItem('currentUserRole'); // Ensure all role info is cleared
+            showMessage('Logged out successfully.', false);
+            showView('auth'); // Redirect to authentication view
+        }
+
+        // Event listener for the Logout button
+        logoutBtn.addEventListener('click', performLogout); 
+
+        // --- Data Entry Form Submission (interacting with backend) ---
+        dataForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent default form submission
+
+            if (!authToken || !currentUserId) {
+                showMessage('You must be logged in to submit data.', true);
+                performLogout(); // Force logout if not authenticated
+                return;
+            }
+
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                education: document.getElementById('education').value,
+                occupation: document.getElementById('occupation').value,
+                aiInterest: document.querySelector('input[name="aiInterest"]:checked')?.value || 'N/A',
+                hobbies: Array.from(document.querySelectorAll('input[name="hobbies"]:checked')).map(cb => cb.value),
+                feedback: document.getElementById('feedback').value,
+                userId: currentUserId // Include userId for backend to associate data
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/survey-responses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}` // Send token for authentication
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('Data submitted successfully!', false);
+                    dataForm.reset(); // Clear the form
+                } else {
+                    showMessage(`Error submitting data: ${result.message || response.statusText}`, true);
+                }
+            } catch (error) {
+                console.error("Error submitting data:", error);
+                showMessage(`Error submitting data: ${error.message}`, true);
+            }
+        });
+
+        // Initialize the app on window load
+        window.onload = checkAuthStatus;
+    </script>
 </body>
 </html>

@@ -104,7 +104,6 @@ const SurveyResponseSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now } // Timestamp of response submission
 });
 
-// Create the SurveyResponse Model from the schema
 const SurveyResponse = mongoose.model('SurveyResponse', SurveyResponseSchema);
 
 // --- 8. JWT Authentication Middleware ---
@@ -143,60 +142,58 @@ const authorizeAdmin = (req, res, next) => {
 
 // --- 10. API Routes ---
 
-// POST /api/signup: Registers a new user.
+// POST /api/signup: Registers a new user (always with 'user' role).
 app.post('/api/signup', async (req, res) => {
     try {
         const { email, password } = req.body;
-        // Basic validation for email and password presence
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
         }
 
-        // Create a new user with the default 'user' role
-        const newUser = new User({ email, password, role: 'user' });
-        await newUser.save(); // Save the user to MongoDB (password will be hashed by pre-save hook)
+        const newUser = new User({ email, password, role: 'user' }); // Default role is 'user'
+        await newUser.save();
 
-        // Generate a JWT token for the newly registered user, including their role
+        // Generate JWT token for the new user, including their role
         const token = jwt.sign({ id: newUser._id, email: newUser.email, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        // Send success response with token, user ID, and role
         res.status(201).json({ message: 'User registered successfully!', token, userId: newUser._id, role: newUser.role });
     } catch (error) {
         console.error('Signup error:', error);
-        // Handle duplicate email error (MongoDB error code 11000)
-        if (error.code === 11000) {
+        if (error.code === 11000) { // Duplicate key error (email already exists)
             return res.status(409).json({ message: 'Email already registered.' });
         }
-        // Generic server error
         res.status(500).json({ message: 'Server error during signup.', error: error.message });
     }
 });
 
-// POST /api/login: Authenticates an existing user.
+// POST /api/login: Authenticates a regular user.
+// This endpoint now specifically denies admin logins.
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        // Basic validation for email and password presence
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
         }
 
-        // Find the user by email
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials.' });
         }
 
-        // Compare the provided password with the hashed password in the database
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials.' });
         }
 
-        // Generate a JWT token for the authenticated user, including their role
+        // IMPORTANT: If the user has an 'admin' role, deny login through this endpoint.
+        // They must use the /api/admin-login endpoint.
+        if (user.role === 'admin') {
+            return res.status(403).json({ message: 'Admin accounts must use the separate Admin Panel.' });
+        }
+
+        // Generate JWT token
         const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        // Send success response with token, user ID, and role
         res.status(200).json({ message: 'Logged in successfully!', token, userId: user._id, role: user.role });
     } catch (error) {
         console.error('Login error:', error);
@@ -204,25 +201,56 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// POST /api/survey-responses: Saves a new survey response.
-// This route is protected by `authenticateToken` (only logged-in users can submit).
+// POST /api/admin-login: Authenticates an administrator. (NEW ENDPOINT)
+app.post('/api/admin-login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid credentials.' });
+        }
+
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials.' });
+        }
+
+        // Crucial: Verify that the user has the 'admin' role
+        if (user.role !== 'admin') {
+            return res.status(403).json({ message: 'Access denied: Not an administrator account.' });
+        }
+
+        // Generate JWT token for admin, including their role
+        const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        res.status(200).json({ message: 'Admin logged in successfully!', token, userId: user._id, role: user.role });
+    } catch (error) {
+        console.error('Admin login error:', error);
+        res.status(500).json({ message: 'Server error during admin login.', error: error.message });
+    }
+});
+
+
+// POST /api/survey-responses: Saves a new survey response (for regular users).
+// Protected by `authenticateToken` and prevents admin roles from using it.
 app.post('/api/survey-responses', authenticateToken, async (req, res) => {
     try {
-        // Destructure necessary fields from the request body
         const { fullName, age, gender, education, occupation, aiInterest, hobbies, feedback } = req.body;
 
-        // Optional: Prevent admin accounts from submitting survey data through this endpoint
+        // Prevent admin accounts from submitting survey data through this endpoint
         if (req.user.role === 'admin') {
             return res.status(403).json({ message: 'Admin accounts cannot submit user survey data through this endpoint.' });
         }
 
-        // Create a new SurveyResponse document
         const newResponse = new SurveyResponse({
-            userId: req.user.id, // Use the userId from the authenticated token (ensures data integrity)
+            userId: req.user.id, // Use userId from the authenticated token
             fullName, age, gender, education, occupation, aiInterest, hobbies, feedback
         });
-        await newResponse.save(); // Save the response to MongoDB
-
+        await newResponse.save();
         res.status(201).json({ message: 'Survey response saved successfully!', data: newResponse });
     } catch (error) {
         console.error('Error saving survey response:', error);
@@ -230,12 +258,11 @@ app.post('/api/survey-responses', authenticateToken, async (req, res) => {
     }
 });
 
-// GET /api/survey-responses: Fetches all survey responses.
-// This route is protected by `authenticateToken` AND `authorizeAdmin` (only admins can view all data).
+// GET /api/survey-responses: Fetches all survey responses (for admin panel).
+// Protected by `authenticateToken` AND `authorizeAdmin`.
 app.get('/api/survey-responses', authenticateToken, authorizeAdmin, async (req, res) => {
     try {
-        // Find all survey responses and populate the 'userId' field
-        // to get the associated user's email for display in the admin panel.
+        // Fetch all survey responses and populate the 'userId' field to get user email
         const responses = await SurveyResponse.find().populate('userId', 'email');
         res.status(200).json(responses);
     } catch (error) {
@@ -255,16 +282,13 @@ app.post('/api/create-admin', async (req, res) => {
             return res.status(400).json({ message: 'Email and password are required.' });
         }
 
-        // Check if an admin user with this email already exists to prevent duplicates
         const existingAdmin = await User.findOne({ email, role: 'admin' });
         if (existingAdmin) {
             return res.status(409).json({ message: 'Admin user with this email already exists.' });
         }
 
-        // Create a new user with the 'admin' role
         const newAdmin = new User({ email, password, role: 'admin' });
-        await newAdmin.save(); // Save to MongoDB
-
+        await newAdmin.save();
         res.status(201).json({ message: 'Admin user created successfully!', userId: newAdmin._id });
     } catch (error) {
         console.error('Error creating admin user:', error);
@@ -274,7 +298,6 @@ app.post('/api/create-admin', async (req, res) => {
 
 
 // --- 11. Start the Server ---
-// Listen for incoming requests on the specified port.
 app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
 });
