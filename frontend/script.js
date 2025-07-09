@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://sowmiyabackend.vercel.app/'; // IMPORTANT: Change this if your backend runs on a different port/host
+const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Change this if your backend runs on a different port/host
 
         // Initialize message box
         const messageBox = document.getElementById('messageBox');
