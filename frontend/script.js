@@ -4,7 +4,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
         // This is for demonstration/testing purposes only to simplify admin access.
         // In a real application, admin roles are managed purely on the backend.
         const FIXED_ADMIN_EMAIL = 'admin@example.com'; 
-        const FIXED_ADMIN_PASSWORD = 'adminpassword'; // <-- HARDCODED ADMIN PASSWORD
+        const FIXED_ADMIN_PASSWORD = 'adminpassword'; 
 
         // Get references to message box elements
         const messageBox = document.getElementById('messageBox');
@@ -93,16 +93,19 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
         // --- Authentication Handlers ---
         // Checks the authentication status on page load and displays the appropriate view
         async function checkAuthStatus() {
+            console.log("checkAuthStatus called. Current Role from localStorage:", currentUserRole);
             if (authToken && currentUserId && currentUserRole) {
                 // If token and user info exist, assume logged in and show appropriate panel
                 showMessage(`Welcome back! You are logged in as ${currentUserRole}.`, false);
                 if (currentUserRole === 'admin') {
+                    console.log("checkAuthStatus: Showing admin panel.");
                     showView('adminPanel');
                 } else {
+                    console.log("checkAuthStatus: Showing user data entry section.");
                     showView('dataEntry');
                 }
             } else {
-                // If no token, show the authentication section
+                console.log("checkAuthStatus: No active session, showing auth section.");
                 showView('auth');
             }
         }
@@ -117,8 +120,11 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 return;
             }
 
+            console.log("Attempting login for:", email);
+
             // Check if the entered email and password match the fixed admin credentials
             if (email === FIXED_ADMIN_EMAIL && password === FIXED_ADMIN_PASSWORD) {
+                console.log("Attempting fixed admin login...");
                 try {
                     // Attempt to log in the fixed admin email via the backend
                     const response = await fetch(`${API_BASE_URL}/login`, {
@@ -128,6 +134,8 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                     });
 
                     const data = await response.json();
+                    console.log("Backend response for fixed admin login:", data);
+
                     // Crucially, verify the backend also confirms it's an admin.
                     // This prevents unauthorized access if someone guesses the hardcoded email/password.
                     if (response.ok && data.role === 'admin') { 
@@ -137,11 +145,12 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                         localStorage.setItem('authToken', authToken);
                         localStorage.setItem('currentUserId', currentUserId);
                         localStorage.setItem('currentUserRole', currentUserRole);
-
+                        console.log("Fixed admin login successful. Role set to:", currentUserRole);
                         showMessage('Admin login successful!', false);
                         showView('adminPanel'); // Directly show admin panel
                     } else {
                         // If backend doesn't confirm admin role or login fails
+                        console.log("Fixed admin login failed. Backend data.role:", data.role);
                         showMessage(`Admin login failed: ${data.message || 'Invalid credentials or not an admin account'}`, true);
                     }
                 } catch (error) {
@@ -150,6 +159,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 }
             } else {
                 // Regular user login flow (or if fixed admin credentials don't match)
+                console.log("Attempting regular user login...");
                 try {
                     const response = await fetch(`${API_BASE_URL}/login`, {
                         method: 'POST',
@@ -158,6 +168,8 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                     });
 
                     const data = await response.json();
+                    console.log("Backend response for regular login:", data);
+
                     if (response.ok) {
                         authToken = data.token;
                         currentUserId = data.userId;
@@ -165,14 +177,17 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                         localStorage.setItem('authToken', authToken);
                         localStorage.setItem('currentUserId', currentUserId);
                         localStorage.setItem('currentUserRole', currentUserRole);
-
+                        console.log("Regular login successful. Role set to:", currentUserRole);
                         showMessage('Login successful!', false);
                         if (currentUserRole === 'admin') { // Fallback in case a regular login returns admin role
+                            console.log("Regular login: User is actually an admin, showing admin panel.");
                             showView('adminPanel');
                         } else {
+                            console.log("Regular login: User is regular, showing data entry section.");
                             showView('dataEntry');
                         }
                     } else {
+                        console.log("Regular login failed. Backend message:", data.message);
                         showMessage(`Login failed: ${data.message || 'Invalid credentials'}`, true);
                     }
                 } catch (error) {
@@ -192,6 +207,8 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 return;
             }
 
+            console.log("Attempting signup for:", email);
+
             try {
                 // Send signup request to the backend
                 const response = await fetch(`${API_BASE_URL}/signup`, {
@@ -201,6 +218,8 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 });
 
                 const data = await response.json(); // Parse the JSON response
+                console.log("Backend response for signup:", data);
+
                 if (response.ok) {
                     // Store token, user ID, and role (should be 'user' for signup)
                     authToken = data.token;
@@ -209,11 +228,12 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                     localStorage.setItem('authToken', authToken);
                     localStorage.setItem('currentUserId', currentUserId);
                     localStorage.setItem('currentUserRole', currentUserRole);
-
+                    console.log("Signup successful. Role set to:", currentUserRole);
                     showMessage('Sign up successful! You are now logged in.', false);
                     showView('dataEntry'); // Show data entry form after successful signup
                 } else {
                     // Display error message from backend
+                    console.log("Signup failed. Backend message:", data.message);
                     showMessage(`Sign up failed: ${data.message || 'Email already in use or weak password'}`, true);
                 }
             } catch (error) {
@@ -224,6 +244,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
 
         // Function to perform logout (clears local storage and shows auth view)
         function performLogout() {
+            console.log("Performing logout...");
             authToken = null;
             currentUserId = null;
             currentUserRole = null;
@@ -232,6 +253,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
             localStorage.removeItem('currentUserRole');
             showMessage('Logged out successfully.', false);
             showView('auth'); // Redirect to authentication view
+            console.log("Logout complete.");
         }
 
         // Event listeners for logout buttons (both user and admin logout use the same function)
@@ -262,6 +284,8 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 userId: currentUserId // Link data to the currently logged-in user
             };
 
+            console.log("Submitting user data:", formData);
+
             try {
                 // Send survey response data to the backend
                 const response = await fetch(`${API_BASE_URL}/survey-responses`, {
@@ -274,6 +298,8 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 });
 
                 const result = await response.json(); // Parse the response
+                console.log("Backend response for data submission:", result);
+
                 if (response.ok) {
                     showMessage('Data submitted successfully!', false);
                     dataForm.reset(); // Clear the form after successful submission
@@ -298,6 +324,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 return;
             }
 
+            console.log("Loading admin data...");
             try {
                 // Fetch all survey responses from the backend (admin-protected endpoint)
                 const response = await fetch(`${API_BASE_URL}/survey-responses`, {
@@ -308,11 +335,13 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 });
 
                 const data = await response.json(); // Parse the response
+                console.log("Backend response for admin data:", data);
 
                 if (!response.ok) {
                     showMessage(`Error loading data: ${data.message || response.statusText}`, true);
                     // If token is invalid/expired or unauthorized, force logout
                     if (response.status === 401 || response.status === 403) {
+                        console.error("Admin data load failed due to auth/permission issue. Forcing logout.");
                         performLogout();
                     }
                     return;
@@ -350,6 +379,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                         cell.className = 'py-3 px-4 border-b border-gray-200 text-sm text-gray-800';
                     });
                 });
+                console.log("Admin data loaded successfully.");
             } catch (error) {
                 console.error("Error loading admin data:", error);
                 showMessage(`Error loading data: ${error.message}`, true); // Display network/fetch error
@@ -366,6 +396,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 return;
             }
 
+            console.log("Attempting to download data...");
             try {
                 // Fetch all survey data for CSV download
                 const response = await fetch(`${API_BASE_URL}/survey-responses`, {
@@ -375,6 +406,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                     }
                 });
                 const data = await response.json();
+                console.log("Backend response for data download:", data);
 
                 if (!response.ok) {
                     showMessage(`Error fetching data for download: ${data.message || response.statusText}`, true);
@@ -425,6 +457,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api';
                 } else {
                     showMessage('Your browser does not support downloading files directly.', true);
                 }
+                console.log("Data download initiated.");
 
             } catch (error) {
                 console.error("Error downloading data:", error);
