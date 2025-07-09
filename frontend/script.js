@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // UPDATED TO YOUR VERCEL LINK
+const API_BASE_URL = 'https://sowmiyabackend.vercel.app'; // UPDATED TO YOUR VERCEL LINK
 
         // Initialize message box
         const messageBox = document.getElementById('messageBox');
