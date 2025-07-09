@@ -1,5 +1,4 @@
-
-        body {
+body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5;
             display: flex;
@@ -16,7 +15,7 @@
             border-radius: 1rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 600px;
+            max-width: 900px; /* Wider for table */
             box-sizing: border-box;
         }
         .form-input {

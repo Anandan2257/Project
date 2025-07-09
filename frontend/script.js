@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Change this if your backend runs on a different port/host
+const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // UPDATED TO YOUR VERCEL LINK
 
         // Initialize message box
         const messageBox = document.getElementById('messageBox');
@@ -25,16 +25,14 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
         const loginForm = document.getElementById('loginForm');
         const signupForm = document.getElementById('signupForm');
         const dataEntrySection = document.getElementById('dataEntrySection');
-        const adminPanelSection = document.getElementById('adminPanelSection');
+        const adminPanelSection = document.getElementById('adminPanelSection'); // Admin panel section
 
         const showSignupBtn = document.getElementById('showSignup');
         const showLoginBtn = document.getElementById('showLogin');
         const loginBtn = document.getElementById('loginBtn');
         const signupBtn = document.getElementById('signupBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const showAdminPanelBtn = document.getElementById('showAdminPanelBtn');
-        const backToDataEntryBtn = document.getElementById('backToDataEntryBtn');
-        const downloadDataBtn = document.getElementById('downloadDataBtn');
+        const logoutBtn = document.getElementById('logoutBtn'); // User logout
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn'); // Admin logout
 
         const loginEmailInput = document.getElementById('loginEmail');
         const loginPasswordInput = document.getElementById('loginPassword');
@@ -42,17 +40,18 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
         const signupPasswordInput = document.getElementById('signupPassword');
 
         const dataForm = document.getElementById('dataForm');
-        const dataTableBody = document.getElementById('dataTableBody');
+        const dataTableBody = document.getElementById('dataTableBody'); // For admin panel table
 
-        // Global state for authentication (token and user ID)
+        // Global state for authentication (token, user ID, and role)
         let authToken = localStorage.getItem('authToken') || null;
         let currentUserId = localStorage.getItem('currentUserId') || null;
+        let currentUserRole = localStorage.getItem('currentUserRole') || null;
 
         // --- View Management Functions ---
         function showView(viewId) {
             authSection.classList.add('hidden');
             dataEntrySection.classList.add('hidden');
-            adminPanelSection.classList.add('hidden');
+            adminPanelSection.classList.add('hidden'); // Hide admin panel by default
 
             if (viewId === 'auth') {
                 authSection.classList.remove('hidden');
@@ -76,13 +75,17 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
             }
         }
 
-        // --- Authentication Handlers (now interacting with backend) ---
+        // --- Authentication Handlers ---
         async function checkAuthStatus() {
-            if (authToken && currentUserId) {
+            if (authToken && currentUserId && currentUserRole) {
                 // In a real app, you'd validate the token with the backend here
                 // For this demo, we'll assume if token and ID exist, user is logged in
-                showMessage(`Welcome back! You are logged in.`, false);
-                showView('dataEntry');
+                showMessage(`Welcome back! You are logged in as ${currentUserRole}.`, false);
+                if (currentUserRole === 'admin') {
+                    showView('adminPanel');
+                } else {
+                    showView('dataEntry');
+                }
             } else {
                 showView('auth');
             }
@@ -97,7 +100,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/login`, {
+                const response = await fetch(`${API_BASE_URL}/login`, { // Use the general login endpoint
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -107,10 +110,17 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
                 if (response.ok) {
                     authToken = data.token;
                     currentUserId = data.userId;
+                    currentUserRole = data.role; // Get the user's role from the backend
                     localStorage.setItem('authToken', authToken);
                     localStorage.setItem('currentUserId', currentUserId);
+                    localStorage.setItem('currentUserRole', currentUserRole);
+
                     showMessage('Login successful!', false);
-                    showView('dataEntry');
+                    if (currentUserRole === 'admin') {
+                        showView('adminPanel');
+                    } else {
+                        showView('dataEntry');
+                    }
                 } else {
                     showMessage(`Login failed: ${data.message || 'Invalid credentials'}`, true);
                 }
@@ -139,8 +149,11 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
                 if (response.ok) {
                     authToken = data.token;
                     currentUserId = data.userId;
+                    currentUserRole = data.role; // Should be 'user' for signup
                     localStorage.setItem('authToken', authToken);
                     localStorage.setItem('currentUserId', currentUserId);
+                    localStorage.setItem('currentUserRole', currentUserRole);
+
                     showMessage('Sign up successful! You are now logged in.', false);
                     showView('dataEntry');
                 } else {
@@ -152,22 +165,28 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
             }
         });
 
-        logoutBtn.addEventListener('click', () => {
+        // Logout for both user and admin
+        function performLogout() {
             authToken = null;
             currentUserId = null;
+            currentUserRole = null;
             localStorage.removeItem('authToken');
             localStorage.removeItem('currentUserId');
+            localStorage.removeItem('currentUserRole');
             showMessage('Logged out successfully.', false);
             showView('auth');
-        });
+        }
 
-        // --- Data Entry Form Submission (now interacting with backend) ---
+        logoutBtn.addEventListener('click', performLogout); // User logout button
+        adminLogoutBtn.addEventListener('click', performLogout); // Admin logout button
+
+        // --- Data Entry Form Submission (interacting with backend) ---
         dataForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            if (!authToken || !currentUserId) {
-                showMessage('You must be logged in to submit data.', true);
-                showView('auth');
+            if (!authToken || !currentUserId || currentUserRole !== 'user') {
+                showMessage('You must be logged in as a user to submit data.', true);
+                performLogout(); // Force logout if role is wrong or not authenticated
                 return;
             }
 
@@ -206,22 +225,22 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
             }
         });
 
-        // --- Admin Panel Functions (now interacting with backend) ---
+        // --- Admin Panel Functions (interacting with backend) ---
         async function loadAdminData() {
             dataTableBody.innerHTML = ''; // Clear existing table rows
 
-            if (!authToken || !currentUserId) {
-                showMessage('You must be logged in to view admin data.', true);
-                showView('auth');
+            if (!authToken || currentUserRole !== 'admin') {
+                showMessage('Admin not authenticated or not an admin. Please log in as admin.', true);
+                performLogout(); // Force logout if role is wrong or not authenticated
                 return;
             }
 
             try {
-                // This endpoint will fetch ALL survey data, assuming the backend handles admin authorization
+                // This endpoint will fetch ALL survey data, protected by admin authorization
                 const response = await fetch(`${API_BASE_URL}/survey-responses`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${authToken}` // Send token for authorization
+                        'Authorization': `Bearer ${authToken}` // Send admin token for authorization
                     }
                 });
 
@@ -229,6 +248,10 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
 
                 if (!response.ok) {
                     showMessage(`Error loading data: ${data.message || response.statusText}`, true);
+                    // If token is invalid/expired, clear it and force logout
+                    if (response.status === 401 || response.status === 403) {
+                        performLogout();
+                    }
                     return;
                 }
 
@@ -245,7 +268,8 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
                     const row = dataTableBody.insertRow();
                     row.className = 'hover:bg-gray-50';
 
-                    row.insertCell(0).textContent = item.userId || 'N/A';
+                    // Display user email (from populated 'userId' field in backend)
+                    row.insertCell(0).textContent = item.userId ? item.userId.email : 'N/A';
                     row.insertCell(1).textContent = item.fullName || '';
                     row.insertCell(2).textContent = item.age || '';
                     row.insertCell(3).textContent = item.gender || '';
@@ -267,9 +291,9 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
         }
 
         downloadDataBtn.addEventListener('click', async () => {
-            if (!authToken || !currentUserId) {
-                showMessage('You must be logged in to download data.', true);
-                showView('auth');
+            if (!authToken || currentUserRole !== 'admin') {
+                showMessage('Admin not authenticated or not an admin. Cannot download data.', true);
+                performLogout();
                 return;
             }
 
@@ -294,14 +318,14 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
 
                 // Prepare CSV content
                 const headers = [
-                    "User ID", "Full Name", "Age", "Gender", "Education", "Occupation",
+                    "User Email", "Full Name", "Age", "Gender", "Education", "Occupation",
                     "AI Interest", "Hobbies", "Feedback", "Timestamp"
                 ];
                 let csvContent = headers.join(',') + '\n';
 
                 data.forEach(row => {
                     const values = [
-                        row.userId || '',
+                        (row.userId ? row.userId.email : 'N/A') || '',
                         `"${(row.fullName || '').replace(/"/g, '""')}"`, // Handle commas and quotes
                         row.age || '',
                         row.gender || '',
@@ -321,7 +345,7 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
                 if (link.download !== undefined) { // Feature detection for download attribute
                     const url = URL.createObjectURL(blob);
                     link.setAttribute('href', url);
-                    link.setAttribute('download', `user_data_${new Date().toISOString().slice(0,10)}.csv`);
+                    link.setAttribute('download', `all_user_data_${new Date().toISOString().slice(0,10)}.csv`);
                     link.style.visibility = 'hidden';
                     document.body.appendChild(link);
                     link.click();
@@ -347,14 +371,6 @@ const API_BASE_URL = 'https://sowmiyabackend.vercel.app/api'; // IMPORTANT: Chan
         showLoginBtn.addEventListener('click', (e) => {
             e.preventDefault();
             toggleAuthForm('login');
-        });
-
-        showAdminPanelBtn.addEventListener('click', () => {
-            showView('adminPanel');
-        });
-
-        backToDataEntryBtn.addEventListener('click', () => {
-            showView('dataEntry');
         });
 
         // Initialize the app on window load
