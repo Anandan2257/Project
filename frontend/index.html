@@ -314,6 +314,7 @@
 
         // Function to toggle between login and signup forms within the auth section
         function toggleAuthForm(show) {
+            console.log("toggleAuthForm called with:", show); // Debugging log
             if (show === 'signup') {
                 loginForm.classList.add('hidden');
                 signupForm.classList.remove('hidden');
@@ -385,9 +386,9 @@
             }
         });
 
-        // Event listener for the Sign Up button (for regular users)
+        // Event listener for the Sign Up button (the actual form submission button)
         signupBtn.addEventListener('click', async () => {
-            console.log("Sign Up button clicked - Event Listener Fired!"); // <-- NEW DEBUG LOG HERE
+            console.log("Sign Up FORM SUBMIT button clicked - Event Listener Fired!"); // Debugging log for the form button
             const email = signupEmailInput.value;
             const password = signupPasswordInput.value;
 
@@ -427,6 +428,20 @@
                 console.error("Sign up error:", error); // Debugging log
                 showMessage(`Sign up failed: ${error.message}`, true); // Display network/fetch error
             }
+        });
+
+        // Event listener for the "Sign up" LINK (which toggles the form visibility)
+        showSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // IMPORTANT: Prevent default link behavior (stops the # from appearing in URL)
+            console.log("showSignup link clicked - Event Listener Fired!"); // Debugging log for the link
+            toggleAuthForm('signup'); // Show signup form
+        });
+
+        // Event listener for the "Login" LINK (which toggles the form visibility)
+        showLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // IMPORTANT: Prevent default link behavior
+            console.log("showLogin link clicked - Event Listener Fired!"); // Debugging log for the link
+            toggleAuthForm('login'); // Show login form
         });
 
         // Function to perform logout (clears local storage and shows auth view)
