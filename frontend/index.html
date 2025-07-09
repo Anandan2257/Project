@@ -11,16 +11,17 @@
 </head>
 <body>
    <div class="container">
-        <!-- Message Box -->
+        <!-- Message Box for displaying success/error messages -->
         <div id="messageBox" class="message-box">
             <span id="messageText"></span>
             <button class="close-btn" onclick="hideMessage()">×</button>
         </div>
 
-        <!-- Authentication Section (User/Admin Login) -->
+        <!-- Authentication Section: Contains Login and Sign Up forms -->
         <div id="authSection">
             <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Welcome</h2>
 
+            <!-- Login Form -->
             <div id="loginForm" class="space-y-6">
                 <h3 class="text-2xl font-semibold text-gray-700 mb-4">Login</h3>
                 <div>
@@ -37,6 +38,7 @@
                 </p>
             </div>
 
+            <!-- Sign Up Form (initially hidden) -->
             <div id="signupForm" class="space-y-6 hidden">
                 <h3 class="text-2xl font-semibold text-gray-700 mb-4">Sign Up</h3>
                 <div>
@@ -54,7 +56,7 @@
             </div>
         </div>
 
-        <!-- Data Entry Section (for regular users) -->
+        <!-- Data Entry Section (for regular users, initially hidden) -->
         <div id="dataEntrySection" class="hidden">
             <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">User Data Form</h2>
             <p class="text-center text-gray-600 mb-6">Please fill out the questions below for the ML project.</p>
@@ -141,7 +143,7 @@
             <button id="logoutBtn" class="btn-secondary w-full mt-4">Logout</button>
         </div>
 
-        <!-- Admin Panel Section (for admin users) -->
+        <!-- Admin Panel Section (for admin users, initially hidden) -->
         <div id="adminPanelSection" class="hidden">
             <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Admin Panel</h2>
             <p class="text-center text-gray-600 mb-6">View and download all user data.</p>

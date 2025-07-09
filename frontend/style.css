@@ -1,4 +1,4 @@
-body {
+ body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5;
             display: flex;
@@ -9,15 +9,17 @@ body {
             padding: 20px;
             box-sizing: border-box;
         }
+        /* Main container styling */
         .container {
             background-color: #ffffff;
             padding: 2.5rem;
             border-radius: 1rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 900px; /* Wider for table */
+            max-width: 900px; /* Wider for the admin data table */
             box-sizing: border-box;
         }
+        /* Form input field styling */
         .form-input {
             width: 100%;
             padding: 0.75rem;
@@ -31,6 +33,7 @@ body {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
         }
+        /* Primary button styling */
         .btn-primary {
             background-color: #3b82f6;
             color: white;
@@ -43,6 +46,7 @@ body {
             background-color: #2563eb;
             transform: translateY(-1px);
         }
+        /* Secondary button styling */
         .btn-secondary {
             background-color: #e5e7eb;
             color: #4b5563;
@@ -55,29 +59,31 @@ body {
             background-color: #d1d5db;
             transform: translateY(-1px);
         }
+        /* Message box for notifications */
         .message-box {
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #4CAF50; /* Green */
+            background-color: #4CAF50; /* Green for success */
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
-            opacity: 0;
+            opacity: 0; /* Initially hidden */
             transition: opacity 0.5s ease-in-out;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .message-box.show {
-            opacity: 1;
+            opacity: 1; /* Show when 'show' class is added */
         }
         .message-box.error {
-            background-color: #f44336; /* Red */
+            background-color: #f44336; /* Red for errors */
         }
+        /* Close button for message box */
         .close-btn {
             background: none;
             border: none;
@@ -86,6 +92,7 @@ body {
             cursor: pointer;
             margin-left: auto;
         }
+        /* Utility class to hide elements */
         .hidden {
             display: none;
         }
